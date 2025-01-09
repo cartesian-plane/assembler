@@ -16,6 +16,39 @@ func TestAdvance(t *testing.T) {
 	}
 }
 
+func TestCompWithDestAndJump(t *testing.T) {
+	currentInstruction = "A=D-A;JNE"
+	instructionType = C_INSTRUCTION
+	if comp := Comp(); comp != "D-A" {
+		t.Errorf("comp = %s; want D-A", comp)
+	}
+}
+
+func TestCompNoDestNoJump(t *testing.T) {
+	currentInstruction = "M-D"
+	instructionType = C_INSTRUCTION
+	if comp := Comp(); comp != "M-D" {
+		t.Errorf("comp = %s; want M-D", comp)
+	}
+
+}
+
+func TestCompWithDest(t *testing.T) {
+	currentInstruction = "A=D&A"
+	instructionType = C_INSTRUCTION
+	if comp := Comp(); comp != "D&A" {
+		t.Errorf("comp = %s; want D&A", comp)
+	}
+}
+
+func TestCompWithJump(t *testing.T) {
+	currentInstruction = "D-1;JMP"
+	instructionType = C_INSTRUCTION
+	if comp := Comp(); comp != "D-1" {
+		t.Errorf("comp = %s; want D-1", comp)
+	}
+}
+
 func TestDestEmpty(t *testing.T) {
 	currentInstruction = "A+1;JGT"
 	instructionType = C_INSTRUCTION
