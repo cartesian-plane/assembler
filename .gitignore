@@ -34,7 +34,8 @@ go.work
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
-
+parser.iml
+.idea
 # AWS User-specific
 .idea/**/aws.xml
 
