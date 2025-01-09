@@ -81,3 +81,19 @@ func TestSymbolLinstruction(t *testing.T) {
 		t.Errorf("Symbol() = %s; want  LOOP", symbol)
 	}
 }
+
+func TestJumpNotEmpty(t *testing.T) {
+	currentInstruction = "D;JEQ"
+	instructionType = C_INSTRUCTION
+	if jump := Jump(); jump != "JEQ" {
+		t.Errorf("jump = %s; want D-A", jump)
+	}
+}
+
+func TestJumpEmpty(t *testing.T) {
+	currentInstruction = "D=A-1"
+	instructionType = C_INSTRUCTION
+	if jump := Jump(); jump != "" {
+		t.Errorf("jump = %s; want \"\" (empty string)", jump)
+	}
+}
