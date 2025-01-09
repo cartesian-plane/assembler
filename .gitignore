@@ -35,6 +35,7 @@ go.work
 .idea/**/dictionaries
 .idea/**/shelf
 parser.iml
+Assembler.iml
 .idea
 # AWS User-specific
 .idea/**/aws.xml
