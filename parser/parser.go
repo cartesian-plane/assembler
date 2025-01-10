@@ -61,6 +61,10 @@ func Advance() (hasInstruction bool) {
 	}
 }
 
+func InsType() InstructionType {
+	return instructionType
+}
+
 // Symbol returns the symbol of an A or L instruction.
 func Symbol() string {
 	switch instructionType {
