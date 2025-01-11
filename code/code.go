@@ -24,17 +24,17 @@ func Comp(symbol string) string {
 	case "0":
 		return "0101010"
 	case "1":
-		return "1111111"
+		return "0111111"
 	case "-1":
-		return "1111010"
+		return "0111010"
 	case "D":
-		return "1001100"
+		return "0001100"
 	case "A":
 		return "0110000"
 	case "M":
 		return "1110000"
 	case "!D":
-		return "001111"
+		return "0001111"
 	case "!A":
 		return "0110001"
 	case "!M":
