@@ -38,6 +38,8 @@ func OpenFile(path string) {
 	scanner = bufio.NewScanner(file)
 }
 
+// Advance advances the currentInstruction to the next instruction (if it exists).
+// If the next instruction does not exist, it returns false.
 func Advance() (hasInstruction bool) {
 	if scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -61,6 +63,7 @@ func Advance() (hasInstruction bool) {
 	}
 }
 
+// InsType returns the type of the current instruction
 func InsType() InstructionType {
 	return instructionType
 }
