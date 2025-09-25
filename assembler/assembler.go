@@ -3,6 +3,8 @@ package assembler
 import (
 	"Assembler/code"
 	"Assembler/parser"
+	"Assembler/symbols"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,8 +12,12 @@ import (
 	"strings"
 )
 
+var symbolTable = symbols.SymbolTable
+var availableAddress uint = 16
+
 func Translate(path string) {
 	parser.OpenFile(path)
+	parser.FirstPass()
 	extension := filepath.Ext(path)
 	if extension != ".asm" {
 		panic("Invalid file extension: can only convert .asm files.")
@@ -29,8 +35,22 @@ func Translate(path string) {
 		switch parser.InsType() {
 		case parser.A_INSTRUCTION:
 			symbol := parser.Symbol()
-			value, _ := strconv.ParseUint(symbol, 10, 15)
-			binaryString := "0" + fmt.Sprintf("%015b", value)
+			value, parseError := strconv.ParseUint(symbol, 10, 15)
+			binaryString := ""
+			// if it gives a syntax error, then it means it tried to parse a Label
+			if errors.Is(parseError, strconv.ErrSyntax) {
+				address, ok := symbolTable[symbol]
+				if ok {
+					binaryString = "0" + fmt.Sprintf("%015b", address)
+				} else {
+					symbolTable[symbol] = availableAddress
+					binaryString = "0" + fmt.Sprintf("%015b", availableAddress)
+					availableAddress++
+				}
+			} else {
+				// if there is no error, then it is just a number (e.g. @12)
+				binaryString = "0" + fmt.Sprintf("%015b", value)
+			}
 			_, writeError := file.WriteString(binaryString + "\n")
 			if writeError != nil {
 				panic(writeError)

@@ -1,8 +1,10 @@
 package parser
 
 import (
+	"Assembler/symbols"
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -25,6 +27,8 @@ var instructionName = map[InstructionType]string{
 var (
 	currentInstruction string
 	instructionType    InstructionType
+	lineNumber         uint = 0
+	firstPassDone           = false
 	file               *os.File
 	scanner            *bufio.Scanner
 )
@@ -58,9 +62,29 @@ func Advance() (hasInstruction bool) {
 		return true
 	} else {
 		// close the file when the end is reached
-		_ = file.Close()
+		if firstPassDone {
+			_ = file.Close()
+		}
 		return false
 	}
+}
+
+func FirstPass() {
+	for Advance() {
+		switch instructionType {
+		case A_INSTRUCTION, C_INSTRUCTION:
+			lineNumber++
+		case L_INSTRUCTION:
+			symbols.SymbolTable[Symbol()] = lineNumber
+		}
+	}
+	// reset the file to the start in preparation for the 2nd pass
+	_, err := file.Seek(0, io.SeekStart)
+	scanner = bufio.NewScanner(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	firstPassDone = true
 }
 
 // InsType returns the type of the current instruction
