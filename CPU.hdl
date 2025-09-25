@@ -1,0 +1,86 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+    Mux16(a= instruction, b= computation, sel= instruction[15], out= inputARegister);
+    Not(in= instruction[15], out= notInstruction15);
+    // decide whether the A Register should be loaded
+    Or(a= notInstruction15, b= instruction[5], out= loadARegister);
+    ARegister(in= inputARegister, load= loadARegister, out= outputARegister, out[0..14]= addressM);
+
+
+    DRegister(in= computation, load= loadDRegister, out= outputDRegister);
+    And(a= instruction[15], b= instruction[4], out=loadDRegister);
+    Mux16(a= outputARegister, b= inM, sel= instruction[12], out= AorM);
+    ALU(x= outputDRegister, y= AorM , zx= instruction[11], nx= instruction[10],
+     zy= instruction[9], ny= instruction[8], f= instruction[7], no= instruction[6], out= computation, out= outM, zr= zero, ng= negative);
+    // handle writing to M register
+    And(a=instruction[3], b=instruction[15], out=writeM);
+
+    // comp > 0
+    And(a= notNegative, b= notZero, out= greaterThan0);
+    And(a= greaterThan0, b= instruction[0], out= compGreaterThan0);
+    
+    // comp == 0 
+    And(a= zero, b= instruction[1], out= compEquals0);
+    
+    // comp ≥ 0
+    Not(in= negative, out= notNegative);
+    And(a= instruction[0], b= instruction[1], out= jumpIfPositive);
+    And(a= notNegative, b= jumpIfPositive, out= compPositive);
+
+    // comp < 0 
+    And(a= instruction[2], b= negative, out= compNegative);
+    
+    // comp ≠ 0
+    And(a= instruction[2], b= instruction[0], out= jumpIfNonzero);
+    Not(in= zero, out= notZero);
+    And(a= jumpIfNonzero, b= notZero, out= compNonzero);
+
+    // comp ≤ 0
+    And(a= instruction[2], b= instruction[1], out= jumpIfNegativeOr0);
+    Or(a= negative, b= zero, out= negativeOr0);
+    And(a= jumpIfNegativeOr0, b= negativeOr0, out= compNegativeOr0);
+
+    // unconditional jump
+    And(a= instruction[0], b= instruction[1], out= unconditional1);
+    And(a= unconditional1, b= instruction[2], out= unconditionalJump);
+
+    Or8Way(in[0]= compGreaterThan0, in[1]= compEquals0, in[2]= compPositive,
+     in[3]= compNegative, in[4]= compNonzero,
+     in[5]= compNegativeOr0, in[6]= unconditionalJump,
+     in[7]= false, out= jump1);     
+    And(a= jump1, b= instruction[15], out= jump);
+
+    PC(in= outputARegister, load= jump, inc= true, reset= reset , out= pc);
+}

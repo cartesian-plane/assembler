@@ -2,6 +2,8 @@
 
 An assembler for the Hack machine language written in Go.
 
+The HDL for the CPU can be found under ``CPU.hdl``
+
 ## Setup
 1. Clone the repository and navigate to the project root.
 2. Build the executable for your system
